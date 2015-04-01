@@ -72,7 +72,10 @@ Point get_point(Point p, Vector q) {
 void normalize(Vector *u) {
   float p;
 
+  // ? need to judge if p == 0
   p = vec_len(*u);
+  if(p <= 0.00001) return;
+
   (*u).x = (*u).x / p;
   (*u).y = (*u).y / p;
   (*u).z = (*u).z / p;

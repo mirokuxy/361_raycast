@@ -171,6 +171,10 @@ void display( void )
 
 	glDrawArrays( GL_TRIANGLES, 0, NumPoints );
 
+	glutPostRedisplay();
+
+	//printf("drawing\n");
+
 	glutSwapBuffers();
 }
 
@@ -243,8 +247,9 @@ int main( int argc, char **argv )
 	glutInitWindowSize( WIN_WIDTH, WIN_HEIGHT );
 	glutCreateWindow( "Ray tracing" );
 	glewInit();
-	
+
 	init();
+	printf("After init\n");
 
 	glutDisplayFunc( display );
 	glutKeyboardFunc( keyboard );
