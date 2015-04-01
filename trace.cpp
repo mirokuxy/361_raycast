@@ -6,6 +6,7 @@
 #include "include/glm/glm.hpp"
 #include "include/glm/gtc/matrix_transform.hpp"
 #include "include/glm/gtc/type_ptr.hpp"
+#include "include/glm/gtx/rotate_vector.hpp"
 
 #include "global.h"
 #include "sphere.h"
@@ -50,11 +51,23 @@ extern int step_max;
 /*********************************************************************
  * Phong illumination - you need to implement this!
  *********************************************************************/
-glm::vec3 phong(glm::vec3 q, glm::vec3 v, glm::vec3 surf_norm, Spheres *sph) {
-  //glm::vec3 color_ga = 
+glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Spheres *sph) {
+  glm::vec3 ambient = light1_ambient * sph->mat_ambient ;
+  
+  float dist = glm::distance(light1, point);
+  float decay = 1 / ( decay_a + decay_b * dist + decay_c * dist * dist );
 
+  glm::vec3 lightDir = glm::normalize(light1 - point);
+  surf_norm = glm::normalize(surf_norm);
+  glm::vec3 diffuse = decay * (light1_diffuse * sph->mat_diffuse * glm::dot(surf_norm, lightDir) );
 
-  glm::vec3 color;
+  glm::vec3 reflectDir = glm::normalize(glm::rotate(lightDir, glm::radians(90.0f), surf_norm));
+  viewDir = glm::normalize(viewDir);
+  float reflectTerm = glm::dot(reflectDir, viewDir);
+  glm::vec3 specular = decay * ( light1_specular * sph->mat_specular) *
+      (float) pow( reflectTerm, sph->mat_shineness) ;
+
+  glm::vec3 color = global_ambient + ambient + diffuse + specular;
 	return color;
 }
 
@@ -71,7 +84,10 @@ glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray, Spheres* sph) {
 	glm::vec3 color;
 
   if(S == NULL) color = background_clr; 
-  else color = glm::vec3(1.0,1.0,1.0);
+  else {
+    //color = glm::vec3(1.0,1.0,1.0);
+    color = phong(hit,eye - hit, sphere_normal(hit,S),S );
+  }
 
 	return color;
 }
