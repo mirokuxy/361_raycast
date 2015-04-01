@@ -17,7 +17,8 @@ INCLUDEDIR=/usr/include/
 LIBDIR=/usr/lib
 
 # If you have more source files add them here 
-SOURCE= scene.cpp image_util.cpp sphere.cpp vector.cpp trace.cpp raycast.cpp include/InitShader.cpp
+# SOURCE= scene.cpp image_util.cpp sphere.cpp vector.cpp trace.cpp raycast.cpp include/InitShader.cpp
+SOURCE= scene.cpp image_util.cpp sphere.cpp trace.cpp raycast.cpp include/InitShader.cpp
 
 # The compiler we are using 
 CC= g++
@@ -38,18 +39,19 @@ EXECUTABLE= raycast
 LDFLAGS = -lGL -lglut -lGLEW -lXext -lX11 -lm
 
 # If you have other library files in a different directory add them here 
-INCLUDEFLAG= -I. -I$(INCLUDEDIR) -Iinclude/
+INCLUDEFLAG= -I. -I$(INCLUDEDIR) -I./include/ 
 LIBFLAG= -L$(LIBDIR)
 
 # Don't touch this one if you don't know what you're doing 
 OBJECT= $(SOURCE:.cpp=.o)
 
 # Don't touch any of these either if you don't know what you're doing 
-all: $(OBJECT) depend
+#all: $(OBJECT) depend
+all: $(OBJECT) 
 	$(CC) $(CFLAGS) $(INCLUDEFLAG) $(LIBFLAG)  $(OBJECT) -o $(EXECUTABLE) $(LDFLAGS)
 
-depend:
-	$(CC) -M $(SOURCE) > depend
+#depend:
+#	$(CC) -M $(SOURCE) > depend
 
 $(OBJECT):
 	$(CC) $(CFLAGS) $(INCLUDEFLAG) -c -o $@ $(@:.o=.cpp)
@@ -60,4 +62,4 @@ clean_object:
 clean:
 	rm -f $(OBJECT) depend $(EXECUTABLE)
 
-include depend
+#include depend

@@ -1,17 +1,23 @@
 /**********************************************************************
  * Some stuff to handle spheres
  **********************************************************************/
-#include "vector.h"
+//#include "glm::vec3.h"
+
+// GLM lib for matrix calculation
+#include "include/glm/glm.hpp"
+#include "include/glm/gtc/matrix_transform.hpp"
+#include "include/glm/gtc/type_ptr.hpp"
+
 
 typedef struct sphere {
   int index;               // identifies a sphere; must be greater than 0
 
-  Point center;
+  glm::vec3 center;
   float radius;
 
-  float mat_ambient[3];    // material property used in Phong model
-  float mat_diffuse[3];
-  float mat_specular[3];
+  glm::vec3 mat_ambient;    // material property used in Phong model
+  glm::vec3 mat_diffuse;
+  glm::vec3 mat_specular;
   float mat_shineness;
 
   float reflectance;       // this number [0,1] determines how much 
@@ -21,11 +27,11 @@ typedef struct sphere {
 } Spheres;   // a list of spheres
 
 // intersect ray with sphere
-//Spheres *intersect_scene(Point, Vector, Spheres *, Point *, int);
-Spheres *intersect_scene(Point, Vector, Spheres *, Point *);
+//Spheres *intersect_scene(glm::vec3, glm::vec3, Spheres *, glm::vec3 *, int);
+Spheres *intersect_scene(glm::vec3, glm::vec3, Spheres *, glm::vec3 *);
 
-// return the unit normal at a point on sphere
-Vector sphere_normal(Point, Spheres *);
+// return the unit normal at a glm::vec3 on sphere
+glm::vec3 sphere_normal(glm::vec3, Spheres *);
 // add a sphere to the sphere list
-Spheres *add_sphere(Spheres *, Point, float, float [], float [], float [], float, float, int);
+Spheres *add_sphere(Spheres *, glm::vec3, float, glm::vec3, glm::vec3, glm::vec3, float, float, int);
 

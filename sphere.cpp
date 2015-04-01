@@ -3,6 +3,11 @@
 #include <math.h>
 #include <stdio.h>
 
+// GLM lib for matrix calculation
+#include "include/glm/glm.hpp"
+#include "include/glm/gtc/matrix_transform.hpp"
+#include "include/glm/gtc/type_ptr.hpp"
+
 /**********************************************************************
  * This function intersects a ray with a given sphere 'sph'. You should
  * use the parametric representation of a line and do the intersection.
@@ -10,17 +15,17 @@
  * which will be compared with others to determine which intersection
  * is closest. The value -1.0 is returned if there is no intersection
  *
- * If there is an intersection, the point of intersection should be
+ * If there is an intersection, the glm::vec3 of intersection should be
  * stored in the "hit" variable
  **********************************************************************/
 const float precision = 0.000001;
 
-float intersect_sphere(Point o, Vector u, Spheres *sph, Point *hit) {
-  Vector toCtr = get_vec(sph->center,o);
+float intersect_sphere(glm::vec3 o, glm::vec3 u, Spheres *sph, glm::vec3 *hit) {
+  glm::vec3 toCtr = o - sph->center ;
 
-  float a = vec_dot(u,u);
-  float b = 2 * vec_dot(u, toCtr);
-  float c = vec_dot(toCtr,toCtr) - sph->radius * sph->radius;
+  float a = glm::dot(u,u);
+  float b = 2 * glm::dot(u, toCtr);
+  float c = glm::dot(toCtr,toCtr) - sph->radius * sph->radius;
 
   float delta = b*b/4 - a*c;
   
@@ -37,7 +42,7 @@ float intersect_sphere(Point o, Vector u, Spheres *sph, Point *hit) {
     if(len < -precision) // wrong direction
       return -1.0;
     else{ // right direction
-      *hit = get_point(sph->center, vec_scale(u, len));
+      *hit = sph->center + u * len;
       return len ;
     }
   }
@@ -47,11 +52,11 @@ float intersect_sphere(Point o, Vector u, Spheres *sph, Point *hit) {
     if(len1 < -precision) // both wrong direction
       return -1.0;
     else if(len2 < -precision) { // only one right direction
-      *hit = get_point(sph->center, vec_scale(u, len1));
+      *hit = sph->center + u * len1;
       return len1 ;
     } 
     else{ // both right direction
-      *hit = get_point(sph->center, vec_scale(u, len2));
+      *hit = sph->center + u * len2;
       return len2 ;
     }
   }
@@ -61,20 +66,20 @@ float intersect_sphere(Point o, Vector u, Spheres *sph, Point *hit) {
 }
 
 /*********************************************************************
- * This function returns a pointer to the sphere object that the
+ * This function returns a glm::vec3er to the sphere object that the
  * ray intersects first; NULL if no intersection. You should decide
  * which arguments to use for the function. For exmaple, note that you
- * should return the point of intersection to the calling function.
+ * should return the glm::vec3 of intersection to the calling function.
  **********************************************************************/
-Spheres *intersect_scene(Point o, Vector u, Spheres *sph, Point *hit) {
+Spheres *intersect_scene(glm::vec3 o, glm::vec3 u, Spheres *sph, glm::vec3 *hit) {
   float len = 0;
-  Point ret_hit ;
+  glm::vec3 ret_hit ;
   Spheres* ret_sph = NULL;
 
   //printf("----------\n");
 
   for(Spheres* s = sph; s!=NULL; s = s->next){
-    Point tmp_hit;
+    glm::vec3 tmp_hit;
     float tmp_len = intersect_sphere(o,u,s,&tmp_hit);
 
     //printf("tmp_len = %f \n",tmp_len);
@@ -105,8 +110,8 @@ Spheres *intersect_scene(Point o, Vector u, Spheres *sph, Point *hit) {
  *
  * You need not change this.
  *****************************************************/
-Spheres *add_sphere(Spheres *slist, Point ctr, float rad, float amb[],
-		    float dif[], float spe[], float shine, 
+Spheres *add_sphere(Spheres *slist, glm::vec3 ctr, float rad, glm::vec3 amb,
+		    glm::vec3 dif, glm::vec3 spe, float shine, 
 		    float refl, int sindex) {
   Spheres *new_sphere;
 
@@ -114,15 +119,9 @@ Spheres *add_sphere(Spheres *slist, Point ctr, float rad, float amb[],
   new_sphere->index = sindex;
   new_sphere->center = ctr;
   new_sphere->radius = rad;
-  (new_sphere->mat_ambient)[0] = amb[0];
-  (new_sphere->mat_ambient)[1] = amb[1];
-  (new_sphere->mat_ambient)[2] = amb[2];
-  (new_sphere->mat_diffuse)[0] = dif[0];
-  (new_sphere->mat_diffuse)[1] = dif[1];
-  (new_sphere->mat_diffuse)[2] = dif[2];
-  (new_sphere->mat_specular)[0] = spe[0];
-  (new_sphere->mat_specular)[1] = spe[1];
-  (new_sphere->mat_specular)[2] = spe[2];
+  (new_sphere->mat_ambient) = amb;
+  (new_sphere->mat_diffuse) = dif;
+  (new_sphere->mat_specular) = spe;
   new_sphere->mat_shineness = shine;
   new_sphere->reflectance = refl;
   new_sphere->next = NULL;
@@ -140,10 +139,10 @@ Spheres *add_sphere(Spheres *slist, Point ctr, float rad, float amb[],
 /******************************************
  * computes a sphere normal - done for you
  ******************************************/
-Vector sphere_normal(Point q, Spheres *sph) {
-  Vector rc;
+glm::vec3 sphere_normal(glm::vec3 q, Spheres *sph) {
+  glm::vec3 rc;
 
-  rc = get_vec(sph->center, q);
-  normalize(&rc);
+  rc = q - sph->center;
+  rc = glm::normalize(rc);
   return rc;
 }

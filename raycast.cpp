@@ -15,6 +15,11 @@
 
 #include "include/Angel.h"
 
+// GLM lib for matrix calculation
+#include "include/glm/glm.hpp"
+#include "include/glm/gtc/matrix_transform.hpp"
+#include "include/glm/gtc/type_ptr.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,7 +42,7 @@
 int win_width = WIN_WIDTH;
 int win_height = WIN_HEIGHT;
 
-GLfloat frame[WIN_HEIGHT][WIN_WIDTH][3];   
+glm::vec3 frame[WIN_HEIGHT][WIN_WIDTH];   
 // array for the final image 
 // This gets displayed in glut window via texture mapping, 
 // you can also save a copy as bitmap by pressing 's'
@@ -46,26 +51,26 @@ float image_width = IMAGE_WIDTH;
 float image_height = (float(WIN_HEIGHT) / float(WIN_WIDTH)) * IMAGE_WIDTH;
 
 // some colors
-RGB_float background_clr; // background color
-RGB_float null_clr = {0.0, 0.0, 0.0};   // NULL color
+glm::vec3 background_clr; // background color
+glm::vec3 null_clr = glm::vec3(0.0, 0.0, 0.0);   // NULL color
 
 //
 // these view parameters should be fixed
 //
-Point eye_pos = {0.0, 0.0, 0.0};  // eye position
+glm::vec3 eye_pos = glm::vec3(0.0, 0.0, 0.0);  // eye position
 float image_plane = -1.5;           // image plane position
 
 // list of spheres in the scene
 Spheres *scene = NULL;
 
 // light 1 position and color
-Point light1;
-float light1_ambient[3];
-float light1_diffuse[3];
-float light1_specular[3];
+glm::vec3 light1;
+glm::vec3 light1_ambient;
+glm::vec3 light1_diffuse;
+glm::vec3 light1_specular;
 
 // global ambient term
-float global_ambient[3];
+glm::vec3 global_ambient;
 
 // light decay parameters
 float decay_a;
@@ -89,37 +94,49 @@ const int NumPoints = 6;
 void init()
 {
 	// Vertices of a square
-	double ext = 1.0;
-	vec4 points[NumPoints] = {
-		vec4( -ext, -ext,  0, 1.0 ), //v1
-		vec4(  ext, -ext,  0, 1.0 ), //v2
-		vec4( -ext,  ext,  0, 1.0 ), //v3	
-		vec4( -ext,  ext,  0, 1.0 ), //v3	
-		vec4(  ext, -ext,  0, 1.0 ), //v2
-		vec4(  ext,  ext,  0, 1.0 )  //v4
+	float ext = 1.0;
+	float points[NumPoints * 4] = {
+		 -ext, -ext,  0, 1.0 , //v1
+		  ext, -ext,  0, 1.0 , //v2
+		 -ext,  ext,  0, 1.0 , //v3	
+		 -ext,  ext,  0, 1.0 , //v3	
+		  ext, -ext,  0, 1.0 , //v2
+		  ext,  ext,  0, 1.0  //v4
 	};
 
 	// Texture coordinates
-	vec2 tex_coords[NumPoints] = {
-		vec2( 0.0, 0.0 ),
-		vec2( 1.0, 0.0 ),
-		vec2( 0.0, 1.0 ),
-		vec2( 0.0, 1.0 ),
-		vec2( 1.0, 0.0 ),
-		vec2( 1.0, 1.0 )
+	float tex_coords[NumPoints * 2] = {
+		0.0, 0.0,
+		1.0, 0.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		1.0, 0.0,
+		1.0, 1.0
 	};
 
 	// Initialize texture objects
+	float newFrame[WIN_HEIGHT][WIN_WIDTH][3];
+
+	for(int i=0;i<WIN_HEIGHT;i++)
+		for(int j=0;j<WIN_WIDTH;j++){
+			newFrame[i][j][0] = frame[i][j].x;
+			newFrame[i][j][1] = frame[i][j].y;
+			newFrame[i][j][2] = frame[i][j].z;
+		}
+
+
 	GLuint texture;
 	glGenTextures( 1, &texture );
 
 	glBindTexture( GL_TEXTURE_2D, texture );
+
+
 	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, WIN_WIDTH, WIN_HEIGHT, 0,
-		GL_RGB, GL_FLOAT, frame );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		GL_RGB, GL_FLOAT, newFrame );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glActiveTexture( GL_TEXTURE0 );
 
 	// Create and initialize a buffer object
