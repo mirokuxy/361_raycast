@@ -85,7 +85,8 @@ int step_max = 1;
 // You can put your flags here
 // a flag to indicate whether you want to have shadows
 int shadow_on = 0;
-
+// a flag to indicate whether to have reflection
+int reflect_on = 0;
 
 // OpenGL
 const int NumPoints = 6;
@@ -244,7 +245,8 @@ int main( int argc, char **argv )
 	// Optional arguments
 	for(int i = 3; i < argc; i++)
 	{
-		if (strcmp(argv[i], "-s") == 0)	shadow_on = 1;
+		if (strcmp(argv[i], "+s") == 0)	shadow_on = 1;
+		if (strcmp(argv[i], "+l") == 0) reflect_on = 1;
 	}
 
 	/*

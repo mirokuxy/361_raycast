@@ -44,6 +44,7 @@ extern float decay_b;
 extern float decay_c;
 
 extern int shadow_on;
+extern int reflect_on;
 extern int step_max;
 
 /////////////////////////////////////////////////////////////////////
@@ -94,12 +95,9 @@ glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Spheres
       (float) pow( reflectTerm, sph->mat_shineness) ;
   //if(shadow) specular = glm::vec3(0);
 
-  glm::vec3 color;
-  if(shadow) 
-    //color = global_ambient + ambient;
-    color = glm::vec3(0);
-  else 
-    color = global_ambient + ambient + diffuse + specular;
+  glm::vec3 color = global_ambient + ambient;
+  if(!shadow) 
+    color += diffuse + specular;
     //color = specular;
     //color = global_ambient + ambient ;
 	return color;
@@ -109,20 +107,29 @@ glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Spheres
  * This is the recursive ray tracer - you need to implement this!
  * You should decide what arguments to use.
  ************************************************************************/
-glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray, Spheres* sph) {
+glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray,int ignore, int step) {
   Spheres* S = NULL;
   glm::vec3 hit;
   
   int dir = -1;
 
-  S = intersect_scene(eye, ray, sph, &hit,0,&dir);
+  S = intersect_scene(eye, ray, scene, &hit, ignore, &dir);
 
 	glm::vec3 color;
 
   if(S == NULL) color = background_clr; 
   else {
     //color = glm::vec3(1.0,1.0,1.0);
-    color = phong(hit,eye - hit, sphere_normal(hit,S),S );
+    glm::vec3 viewDir = glm::normalize(eye - hit);
+    glm::vec3 surf_norm = sphere_normal(hit,S);
+    color = phong(hit,viewDir, surf_norm, S );
+
+    if(reflect_on && step < step_max){
+      glm::vec3 reflectDir = glm::normalize(glm::rotate(viewDir, glm::radians(180.0f), surf_norm));
+      glm::vec3 color_rf = recursive_ray_trace(hit, reflectDir, S->index, step+1);
+
+      color += color_rf * S->reflectance ;
+    }
     //if(dir == 1) color = glm::vec3(1.0,1.0,1.0);
     //else if(dir == 0) color = glm::vec3(0,0,0);
   }
@@ -164,7 +171,7 @@ void ray_trace() {
       //
       // You need to change this!!!
       //
-      ret_color = recursive_ray_trace(eye_pos,ray,scene);
+      ret_color = recursive_ray_trace(eye_pos,ray,0,0);
       //else ret_color = background_clr; // just background for now
 
 
