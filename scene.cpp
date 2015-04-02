@@ -18,7 +18,7 @@ extern glm::vec3 light1_specular;
 // global ambient term
 extern glm::vec3 global_ambient;
 
-extern Spheres *scene;
+extern Object *scene;
 
 extern glm::vec3 background_clr;
 extern float decay_a;
@@ -89,4 +89,25 @@ void set_up_default_scene() {
  * You can create your own scene here
  ***************************************/
 void set_up_user_scene() {
+}
+
+void set_up_chessboard(){
+  
+  glm::vec3 center = glm::vec3(0.0, -2.0, -3.5);
+  glm::vec3 normal = glm::vec3(0,1,0);
+  glm::vec3 Xaxis = glm::vec3(1,0,0);
+
+  int Xlen = 8;
+  int Ylen = 8;
+
+  glm::vec3 mat_ambient = glm::vec3(0.6, 0.6, 0.6);
+  glm::vec3 mat_diffuse = glm::vec3(0,0,0);
+  glm::vec3 mat_specular = glm::vec3(1.0, 1.0, 1.0);
+  float  mat_shineness = 40;
+
+  float reflectance = 0.5;
+
+  scene = add_plane(scene,center, mat_ambient, mat_diffuse, mat_specular, mat_shineness, reflectance, 
+      normal, Xaxis, Xlen, Ylen, 4);
+
 }

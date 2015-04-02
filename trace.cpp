@@ -27,7 +27,7 @@ extern float image_plane;
 extern glm::vec3 background_clr;
 extern glm::vec3 null_clr;
 
-extern Spheres *scene;
+extern Object *scene;
 
 // light 1 position and color
 extern glm::vec3 light1;
@@ -54,9 +54,9 @@ float max(float a,float b){ return a>b?a:b; }
 /*********************************************************************
  * Phong illumination - you need to implement this!
  *********************************************************************/
-glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Spheres *sph) {
+glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Object *obj) {
   // ambient
-  glm::vec3 ambient = light1_ambient * sph->mat_ambient ;
+  glm::vec3 ambient = light1_ambient * obj->mat_ambient ;
   
   float dist = glm::distance(light1, point);
   float decay = 1 / ( decay_a + decay_b * dist + decay_c * dist * dist );
@@ -67,12 +67,12 @@ glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Spheres
   glm::vec3 hit;
   bool shadow = false;
   int dir = -1;
-  if( shadow_on && intersect_scene(point, lightDir, scene, &hit, sph->index, &dir) != NULL ) 
+  if( shadow_on && intersect_scene(point, lightDir, scene, &hit, obj->index, &dir) != NULL ) 
     shadow = true;
 
   // diffuse
   surf_norm = glm::normalize(surf_norm);
-  glm::vec3 diffuse = decay * (light1_diffuse * sph->mat_diffuse) * max(glm::dot(surf_norm, lightDir),0) ;
+  glm::vec3 diffuse = decay * (light1_diffuse * obj->mat_diffuse) * max(glm::dot(surf_norm, lightDir),0) ;
 
   /*
   if(glm::dot(surf_norm,lightDir) < 0) {
@@ -91,8 +91,8 @@ glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Spheres
   reflectDir = glm::normalize(reflectDir);
   viewDir = glm::normalize(viewDir);
   float reflectTerm = max(glm::dot(reflectDir, viewDir),0);
-  glm::vec3 specular = decay * ( light1_specular * sph->mat_specular) *
-      (float) pow( reflectTerm, sph->mat_shineness) ;
+  glm::vec3 specular = decay * ( light1_specular * obj->mat_specular) *
+      (float) pow( reflectTerm, obj->mat_shineness) ;
   //if(shadow) specular = glm::vec3(0);
 
   glm::vec3 color = global_ambient + ambient;
@@ -108,12 +108,12 @@ glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Spheres
  * You should decide what arguments to use.
  ************************************************************************/
 glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray,int ignore, int step) {
-  Spheres* S = NULL;
+  Object* S = NULL;
   glm::vec3 hit;
   
   int dir = -1;
 
-  S = intersect_scene(eye, ray, scene, &hit, ignore, &dir);
+  S = intersect_scene(eye, ray, scene,  &hit, ignore, &dir);
 
 	glm::vec3 color;
 
@@ -121,7 +121,7 @@ glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray,int ignore, int step)
   else {
     //color = glm::vec3(1.0,1.0,1.0);
     glm::vec3 viewDir = glm::normalize(eye - hit);
-    glm::vec3 surf_norm = sphere_normal(hit,S);
+    glm::vec3 surf_norm = get_normal(hit,S);
     color = phong(hit,viewDir, surf_norm, S );
 
     if(reflect_on && step < step_max){

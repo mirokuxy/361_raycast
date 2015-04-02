@@ -62,7 +62,7 @@ glm::vec3 eye_pos = glm::vec3(0.0, 0.0, 0.0);  // eye position
 float image_plane = -1.5;           // image plane position
 
 // list of spheres in the scene
-Spheres *scene = NULL;
+Object *scene = NULL;
 
 // light 1 position and color
 glm::vec3 light1;
@@ -83,10 +83,9 @@ float decay_c;
 int step_max = 1;
 
 // You can put your flags here
-// a flag to indicate whether you want to have shadows
-int shadow_on = 0;
-// a flag to indicate whether to have reflection
-int reflect_on = 0;
+int shadow_on = 0; // a flag to indicate whether you want to have shadows
+int reflect_on = 0; // a flag to indicate whether to have reflection
+int chessboard_on = 0; // whether to set up chessboard
 
 // OpenGL
 const int NumPoints = 6;
@@ -116,7 +115,7 @@ void init()
 		1.0, 1.0
 	};
 
-	// Initialize texture objects
+	// Initialize texture Objects
 	float newFrame[WIN_HEIGHT][WIN_WIDTH][3];
 
 	for(int i=0;i<WIN_HEIGHT;i++)
@@ -141,7 +140,7 @@ void init()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glActiveTexture( GL_TEXTURE0 );
 
-	// Create and initialize a buffer object
+	// Create and initialize a buffer Object
 	GLuint buffer;
 	glGenBuffers( 1, &buffer );
 	glBindBuffer( GL_ARRAY_BUFFER, buffer );
@@ -247,7 +246,11 @@ int main( int argc, char **argv )
 	{
 		if (strcmp(argv[i], "+s") == 0)	shadow_on = 1;
 		if (strcmp(argv[i], "+l") == 0) reflect_on = 1;
+		if (strcmp(argv[i], "+c") == 0) chessboard_on = 1;
 	}
+
+	if(chessboard_on)
+		set_up_chessboard();
 
 	/*
 	glm::vec3 dir = glm::vec3(2,1,0);
