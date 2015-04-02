@@ -47,27 +47,61 @@ extern int shadow_on;
 extern int step_max;
 
 /////////////////////////////////////////////////////////////////////
+float max(float a,float b){ return a>b?a:b; }
+
 
 /*********************************************************************
  * Phong illumination - you need to implement this!
  *********************************************************************/
 glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Spheres *sph) {
+  // ambient
   glm::vec3 ambient = light1_ambient * sph->mat_ambient ;
   
   float dist = glm::distance(light1, point);
   float decay = 1 / ( decay_a + decay_b * dist + decay_c * dist * dist );
+  //printf("decay : %f\n",decay);
 
+  // detect shadow
   glm::vec3 lightDir = glm::normalize(light1 - point);
-  surf_norm = glm::normalize(surf_norm);
-  glm::vec3 diffuse = decay * (light1_diffuse * sph->mat_diffuse * glm::dot(surf_norm, lightDir) );
+  glm::vec3 hit;
+  bool shadow = false;
+  int dir = -1;
+  if( shadow_on && intersect_scene(point, lightDir, scene, &hit, sph->index, &dir) != NULL ) 
+    shadow = true;
 
-  glm::vec3 reflectDir = glm::normalize(glm::rotate(lightDir, glm::radians(90.0f), surf_norm));
+  // diffuse
+  surf_norm = glm::normalize(surf_norm);
+  glm::vec3 diffuse = decay * (light1_diffuse * sph->mat_diffuse) * max(glm::dot(surf_norm, lightDir),0) ;
+
+  /*
+  if(glm::dot(surf_norm,lightDir) < 0) {
+    shadow = true;
+    printf("surf_norm (%f,%f,%f) ; lightDir (%f,%f,%f) \n",surf_norm.x,surf_norm.y,surf_norm.z, 
+        lightDir.x,lightDir.y, lightDir.z);
+  }
+  */
+  //printf("diffuse (%f,%f,%f) \n",diffuse.x,diffuse.y,diffuse.z);
+
+  //if(shadow) diffuse = glm::vec3(0);
+
+  // specular
+  //glm::vec3 reflectDir = glm::normalize(glm::rotate(lightDir, glm::radians(180.0f), surf_norm));
+  glm::vec3 reflectDir = 2 * glm::dot(surf_norm,lightDir) * surf_norm - lightDir ;
+  reflectDir = glm::normalize(reflectDir);
   viewDir = glm::normalize(viewDir);
-  float reflectTerm = glm::dot(reflectDir, viewDir);
+  float reflectTerm = max(glm::dot(reflectDir, viewDir),0);
   glm::vec3 specular = decay * ( light1_specular * sph->mat_specular) *
       (float) pow( reflectTerm, sph->mat_shineness) ;
+  //if(shadow) specular = glm::vec3(0);
 
-  glm::vec3 color = global_ambient + ambient + diffuse + specular;
+  glm::vec3 color;
+  if(shadow) 
+    //color = global_ambient + ambient;
+    color = glm::vec3(0);
+  else 
+    color = global_ambient + ambient + diffuse + specular;
+    //color = specular;
+    //color = global_ambient + ambient ;
 	return color;
 }
 
@@ -79,7 +113,9 @@ glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray, Spheres* sph) {
   Spheres* S = NULL;
   glm::vec3 hit;
   
-  S = intersect_scene(eye, ray, sph, &hit);
+  int dir = -1;
+
+  S = intersect_scene(eye, ray, sph, &hit,0,&dir);
 
 	glm::vec3 color;
 
@@ -87,6 +123,8 @@ glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray, Spheres* sph) {
   else {
     //color = glm::vec3(1.0,1.0,1.0);
     color = phong(hit,eye - hit, sphere_normal(hit,S),S );
+    //if(dir == 1) color = glm::vec3(1.0,1.0,1.0);
+    //else if(dir == 0) color = glm::vec3(0,0,0);
   }
 
 	return color;

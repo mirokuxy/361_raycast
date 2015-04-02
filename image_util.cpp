@@ -82,7 +82,8 @@ void save_image() {
 		fwrite(bmppad,1,(4-(w*3)%4)%4,fp);
 	}
 
- 
+ 	free(bImg);
+
 	fclose(fp);
 }
 

@@ -19,6 +19,7 @@
 #include "include/glm/glm.hpp"
 #include "include/glm/gtc/matrix_transform.hpp"
 #include "include/glm/gtc/type_ptr.hpp"
+#include "include/glm/gtx/rotate_vector.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -245,6 +246,28 @@ int main( int argc, char **argv )
 	{
 		if (strcmp(argv[i], "-s") == 0)	shadow_on = 1;
 	}
+
+	/*
+	glm::vec3 dir = glm::vec3(2,1,0);
+	glm::vec3 norm = glm::vec3(1,0,0);
+	glm::vec3 reflect = glm::rotate(dir, glm::radians(180.0f),norm);
+	printf("dir (%f,%f,%f) ; reflect (%f,%f,%f) \n",dir.x,dir.y,dir.z, reflect.x,reflect.y,reflect.z);
+
+	dir = glm::vec3(2,1,0);
+	norm = glm::vec3(0,1,0);
+	reflect = glm::rotate(dir, glm::radians(180.0f),norm);
+	printf("dir (%f,%f,%f) ; reflect (%f,%f,%f) \n",dir.x,dir.y,dir.z, reflect.x,reflect.y,reflect.z);
+
+	dir = glm::vec3(2,1,0);
+	norm = glm::vec3(0,0,1);
+	reflect = glm::rotate(dir, glm::radians(180.0f),norm);
+	printf("dir (%f,%f,%f) ; reflect (%f,%f,%f) \n",dir.x,dir.y,dir.z, reflect.x,reflect.y,reflect.z);
+
+	dir = glm::vec3(2,1,0);
+	norm = glm::vec3(1,-2,0);
+	reflect = glm::rotate(dir, glm::radians(180.0f),norm);
+	printf("dir (%f,%f,%f) ; reflect (%f,%f,%f) \n",dir.x,dir.y,dir.z, reflect.x,reflect.y,reflect.z);
+	*/
 
 	//
 	// ray trace the scene now

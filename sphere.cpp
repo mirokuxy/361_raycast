@@ -20,12 +20,12 @@
  **********************************************************************/
 const float precision = 0.000001;
 
-float intersect_sphere(glm::vec3 o, glm::vec3 u, Spheres *sph, glm::vec3 *hit) {
-  glm::vec3 toCtr = o - sph->center ;
+float intersect_sphere(glm::vec3 eye, glm::vec3 ray, Spheres *sph, glm::vec3 *hit,int *dir ) {
+  glm::vec3 fromCtr = eye - sph->center ;
 
-  float a = glm::dot(u,u);
-  float b = 2 * glm::dot(u, toCtr);
-  float c = glm::dot(toCtr,toCtr) - sph->radius * sph->radius;
+  float a = glm::dot(ray,ray);
+  float b = 2 * glm::dot(ray, fromCtr);
+  float c = glm::dot(fromCtr,fromCtr) - sph->radius * sph->radius;
 
   float delta = b*b/4 - a*c;
   
@@ -42,7 +42,8 @@ float intersect_sphere(glm::vec3 o, glm::vec3 u, Spheres *sph, glm::vec3 *hit) {
     if(len < -precision) // wrong direction
       return -1.0;
     else{ // right direction
-      *hit = sph->center + u * len;
+      *hit = eye + ray * len;
+      *dir = 0;
       return len ;
     }
   }
@@ -52,11 +53,13 @@ float intersect_sphere(glm::vec3 o, glm::vec3 u, Spheres *sph, glm::vec3 *hit) {
     if(len1 < -precision) // both wrong direction
       return -1.0;
     else if(len2 < -precision) { // only one right direction
-      *hit = sph->center + u * len1;
+      *hit = eye + ray * len1;
+      *dir = 0;
       return len1 ;
     } 
     else{ // both right direction
-      *hit = sph->center + u * len2;
+      *hit = eye + ray * len2;
+      *dir = 1;
       return len2 ;
     }
   }
@@ -71,25 +74,33 @@ float intersect_sphere(glm::vec3 o, glm::vec3 u, Spheres *sph, glm::vec3 *hit) {
  * which arguments to use for the function. For exmaple, note that you
  * should return the glm::vec3 of intersection to the calling function.
  **********************************************************************/
-Spheres *intersect_scene(glm::vec3 o, glm::vec3 u, Spheres *sph, glm::vec3 *hit) {
-  float len = 0;
+Spheres *intersect_scene(glm::vec3 eye, glm::vec3 ray, Spheres *sph, glm::vec3 *hit, int ignore, int *dir) {
+  float len;
+  bool len_set = false;
+
   glm::vec3 ret_hit ;
   Spheres* ret_sph = NULL;
 
+  int ret_dir = -1;
   //printf("----------\n");
 
   for(Spheres* s = sph; s!=NULL; s = s->next){
+    if(s->index == ignore) continue;
     glm::vec3 tmp_hit;
-    float tmp_len = intersect_sphere(o,u,s,&tmp_hit);
+    int tmp_dir = -1;
+    float tmp_len = intersect_sphere(eye,ray,s,&tmp_hit, &tmp_dir);
 
     //printf("tmp_len = %f \n",tmp_len);
 
     if(tmp_len > precision){
       //printf("sphere %d : len = %f , (%f,%f,%f) \n",s->index,tmp_len, tmp_hit.x,tmp_hit.y,tmp_hit.z);
-      if( tmp_len > len){
+      if(!len_set || tmp_len < len ){
+        len_set = true;
         len = tmp_len; 
         ret_hit = tmp_hit;
         ret_sph = s;
+
+        ret_dir = tmp_dir;
       }
     }
 
@@ -99,6 +110,7 @@ Spheres *intersect_scene(glm::vec3 o, glm::vec3 u, Spheres *sph, glm::vec3 *hit)
     //printf("result:\n");
     //printf("sphere %d : len = %f , (%f,%f,%f) \n",ret_sph->index,len,ret_hit.x,ret_hit.y,ret_hit.z);
     *hit = ret_hit;
+    *dir = ret_dir;
   }
   //else printf("No Intersection : len = %f \n",len);
 

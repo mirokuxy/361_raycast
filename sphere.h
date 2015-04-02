@@ -27,8 +27,7 @@ typedef struct sphere {
 } Spheres;   // a list of spheres
 
 // intersect ray with sphere
-//Spheres *intersect_scene(glm::vec3, glm::vec3, Spheres *, glm::vec3 *, int);
-Spheres *intersect_scene(glm::vec3, glm::vec3, Spheres *, glm::vec3 *);
+Spheres *intersect_scene(glm::vec3, glm::vec3, Spheres *, glm::vec3 *, int,int *);
 
 // return the unit normal at a glm::vec3 on sphere
 glm::vec3 sphere_normal(glm::vec3, Spheres *);
