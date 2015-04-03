@@ -39,7 +39,7 @@ EXECUTABLE= raycast
 LDFLAGS = -lGL -lglut -lGLEW -lXext -lX11 -lm
 
 # If you have other library files in a different directory add them here 
-INCLUDEFLAG= -I. -I$(INCLUDEDIR) -I./include/ 
+INCLUDEFLAG= -I. -I$(INCLUDEDIR) -I./include/ -I./myinclude/
 LIBFLAG= -L$(LIBDIR)
 
 # Don't touch this one if you don't know what you're doing 

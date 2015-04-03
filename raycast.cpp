@@ -282,6 +282,7 @@ int main( int argc, char **argv )
 	//
 	printf("Rendering scene using my fantastic ray tracer ...\n");
 	ray_trace();
+	printf("After ray trace\n");
 
 	// we want to make sure that intensity values are normalized
 	histogram_normalization();

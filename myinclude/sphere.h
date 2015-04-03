@@ -2,6 +2,8 @@
  * Some stuff to handle spheres
  **********************************************************************/
 //#include "glm::vec3.h"
+#include <cmath>
+#include <cstdio>
 
 // GLM lib for matrix calculation
 #include "include/glm/glm.hpp"
@@ -69,6 +71,11 @@ public:
   Object(int id, glm::vec3 am, glm::vec3 df, glm::vec3 sp, float sh, float rf):
     index(id),mat_ambient(am),mat_diffuse(df),mat_specular(sp),mat_shineness(sh),reflectance(rf),next(NULL),type('O'){}
 
+  virtual glm::vec3 GetDiffuse(glm::vec3 point){
+    printf("  Enter GetDiffuse ('O')\n");
+    return mat_diffuse;
+  }
+
 };
 
 class Sphere : public Object {
@@ -84,6 +91,12 @@ public:
     Object(id,am,df,sp,sh,rf),center(ctr),radius(r){
       type = 'S';
     }
+
+  glm::vec3 GetDiffuse(glm::vec3 point){
+    printf("  Enter GetDiffuse ('O')\n");
+    return mat_diffuse;
+  }
+
 };
 
 
@@ -104,6 +117,17 @@ public:
       this->Yaxis = glm::cross(this->normal,this->Xaxis);
       this->type = 'P';
     }
+
+  glm::vec3 GetDiffuse(glm::vec3 point){
+    printf("  Enter GetDiffuse ('P') \n");
+    glm::vec3 CtoP = point - this->center;
+    int x = (int) floor( glm::dot(CtoP, this->Xaxis) );
+    int y = (int) floor( glm::dot(CtoP, this->Yaxis) );
+    printf("  Leave GetDiffuse ('P') \n");
+    if( (x+y) % 2 == 0) return glm::vec3(1.0,1.0,1.0);
+    else return glm::vec3(0,0,0);
+  }
+
 };
 
 

@@ -68,10 +68,43 @@ float intersect_sphere(glm::vec3 eye, glm::vec3 ray, Sphere *sph, glm::vec3 *hit
 }
 
 // ---------
-float intersect_plane(glm::vec3 eye, glm::vec3 ray, Plane* pla, glm::vec3 *hit,int *dir ){
-// .....
 
-  return -1.0;
+// return -1.0 when no intersection, and do nothing to *hit or *dir
+// else return distance from eye to hit point (positive only), and set *hit and *dir
+float intersect_plane(glm::vec3 eye, glm::vec3 ray, Plane* pla, glm::vec3 *hit,int *dir ){
+/*
+  Explanation on how to calculate intersection point.
+
+  Define: 
+    dist : distance from eye to hit point (if there is)
+
+  the intersection point of a line and a plane can be calculated by following :
+
+  dist = dot( (plane.center - eye), plane.normal ) / dot( ray, plane.normal )
+  hit = dist * ray + eye;
+*/
+
+  ray = glm::normalize(ray);
+
+  float divident = glm::dot((pla->center - eye) , pla->normal);
+  float divisor = glm::dot(ray , pla->normal);
+
+  if(-precision < divisor && divisor < precision) return -1.0;
+
+  float dist = divident / divisor;
+
+  if(dist < 0) return -1.0;
+
+  glm::vec3 point = dist * ray + eye;
+  glm::vec3 CtoP = point - pla->center;
+
+  if( fabs(glm::dot(CtoP, pla->Xaxis)) > pla->Xlen ) return -1.0;
+  if( fabs(glm::dot(CtoP, pla->Yaxis)) > pla->Ylen ) return -1.0;
+
+  *hit = point;
+  *dir = 1;
+
+  return dist;
 }
 
 /*********************************************************************
@@ -92,9 +125,11 @@ Object *intersect_scene(glm::vec3 eye, glm::vec3 ray, Object *obj, glm::vec3 *hi
 
   for(Object* s = obj; s!=NULL; s = s->next){
     if(s->index == ignore) continue;
+
     glm::vec3 tmp_hit;
     int tmp_dir = -1;
     float tmp_len;
+    
     if(s->type == 'S') tmp_len = intersect_sphere(eye,ray,(Sphere*) s,&tmp_hit, &tmp_dir);
     else if(s->type == 'P') tmp_len = intersect_plane(eye,ray,(Plane*)s, &tmp_hit, &tmp_dir);
 
@@ -104,6 +139,7 @@ Object *intersect_scene(glm::vec3 eye, glm::vec3 ray, Object *obj, glm::vec3 *hi
       //printf("sphere %d : len = %f , (%f,%f,%f) \n",s->index,tmp_len, tmp_hit.x,tmp_hit.y,tmp_hit.z);
       if(!len_set || tmp_len < len ){
         len_set = true;
+
         len = tmp_len; 
         ret_hit = tmp_hit;
         ret_obj = s;
@@ -114,7 +150,8 @@ Object *intersect_scene(glm::vec3 eye, glm::vec3 ray, Object *obj, glm::vec3 *hi
 
   }
 
-  if(len > 0) {
+  //if(len > 0) {
+  if(len_set){
     //printf("result:\n");
     //printf("sphere %d : len = %f , (%f,%f,%f) \n",ret_sph->index,len,ret_hit.x,ret_hit.y,ret_hit.z);
     *hit = ret_hit;

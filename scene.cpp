@@ -100,7 +100,7 @@ void set_up_chessboard(){
   int Xlen = 8;
   int Ylen = 8;
 
-  glm::vec3 mat_ambient = glm::vec3(0.6, 0.6, 0.6);
+  glm::vec3 mat_ambient = glm::vec3(0.1, 0.1, 0.1);
   glm::vec3 mat_diffuse = glm::vec3(0,0,0);
   glm::vec3 mat_specular = glm::vec3(1.0, 1.0, 1.0);
   float  mat_shineness = 40;

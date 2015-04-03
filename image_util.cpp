@@ -63,7 +63,7 @@ void save_image() {
 	FILE *fp;
 	char fname[32];
 
-	strcpy(fname, "scene.bmp");
+	strcpy(fname, "./pic/scene.bmp");
 	printf("Saving image %s: %d x %d\n", fname, w, h);
 	fp = fopen(fname, "wb");
 	if (!fp) {

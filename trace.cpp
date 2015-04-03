@@ -56,7 +56,17 @@ float max(float a,float b){ return a>b?a:b; }
  *********************************************************************/
 glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Object *obj) {
   // ambient
-  glm::vec3 ambient = light1_ambient * obj->mat_ambient ;
+  glm::vec3 mat_ambient;
+
+  if(obj->type == 'S') mat_ambient = obj->mat_ambient;
+  else{
+    glm::vec3 CtoP = point - ((Plane*)obj)->center;
+    int x = (int) floor( glm::dot(CtoP, ((Plane*)obj)->Xaxis) );
+    int y = (int) floor( glm::dot(CtoP, ((Plane*)obj)->Yaxis) );
+    if( (x+y) % 2 == 0) mat_ambient = glm::vec3(0.5,0.5,0.5);
+    else mat_ambient = glm::vec3(0.1,0.1,0.1); 
+  }
+  glm::vec3 ambient = light1_ambient * mat_ambient ;
   
   float dist = glm::distance(light1, point);
   float decay = 1 / ( decay_a + decay_b * dist + decay_c * dist * dist );
@@ -72,7 +82,22 @@ glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Object 
 
   // diffuse
   surf_norm = glm::normalize(surf_norm);
-  glm::vec3 diffuse = decay * (light1_diffuse * obj->mat_diffuse) * max(glm::dot(surf_norm, lightDir),0) ;
+  
+  //printf("  before GetDiffuse\n");
+  glm::vec3 mat_diffuse;
+  //mat_diffuse = ((*obj).GetDiffuse)(point);
+  if(obj->type == 'S') mat_diffuse = obj->mat_diffuse;
+  else{
+    glm::vec3 CtoP = point - ((Plane*)obj)->center;
+    int x = (int) floor( glm::dot(CtoP, ((Plane*)obj)->Xaxis) );
+    int y = (int) floor( glm::dot(CtoP, ((Plane*)obj)->Yaxis) );
+    if( (x+y) % 2 == 0) mat_diffuse = glm::vec3(1.0,1.0,1.0);
+    else mat_diffuse = glm::vec3(0.2,0.2,0.2); 
+  }
+  //printf("  after GetDiffuse\n");
+  
+  glm::vec3 diffuse = decay * (light1_diffuse * mat_diffuse ) * max(glm::dot(surf_norm, lightDir),0) ;
+  //printf("  after calc diffuse\n");
 
   /*
   if(glm::dot(surf_norm,lightDir) < 0) {
@@ -114,6 +139,7 @@ glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray,int ignore, int step)
   int dir = -1;
 
   S = intersect_scene(eye, ray, scene,  &hit, ignore, &dir);
+  //printf("%d : after intersect scene (type: '%c')\n", step, S==NULL?'N':S->type);
 
 	glm::vec3 color;
 
@@ -122,13 +148,19 @@ glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray,int ignore, int step)
     //color = glm::vec3(1.0,1.0,1.0);
     glm::vec3 viewDir = glm::normalize(eye - hit);
     glm::vec3 surf_norm = get_normal(hit,S);
+
+    //printf("  after get normal\n");
     color = phong(hit,viewDir, surf_norm, S );
 
+    //printf("  after phong\n");
+
     if(reflect_on && step < step_max){
+      //printf("  enter reflect\n");
       glm::vec3 reflectDir = glm::normalize(glm::rotate(viewDir, glm::radians(180.0f), surf_norm));
       glm::vec3 color_rf = recursive_ray_trace(hit, reflectDir, S->index, step+1);
 
       color += color_rf * S->reflectance ;
+      //printf("  exit reflect\n");
     }
     //if(dir == 1) color = glm::vec3(1.0,1.0,1.0);
     //else if(dir == 0) color = glm::vec3(0,0,0);
