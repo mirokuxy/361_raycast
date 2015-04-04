@@ -18,7 +18,7 @@ LIBDIR=/usr/lib
 
 # If you have more source files add them here 
 # SOURCE= scene.cpp image_util.cpp sphere.cpp vector.cpp trace.cpp raycast.cpp include/InitShader.cpp
-SOURCE= scene.cpp image_util.cpp sphere.cpp trace.cpp raycast.cpp include/InitShader.cpp
+SOURCE= scene.cpp image_util.cpp object.cpp trace.cpp raycast.cpp include/InitShader.cpp
 
 # The compiler we are using 
 CC= g++
@@ -27,7 +27,8 @@ CC= g++
 # If you want to debug your program,
 # you can add '-g' on the following line
 #CFLAGS= -O3 -g -Wall -pedantic -DGL_GLEXT_PROTOTYPES
-CFLAGS= -O3 -g -DGL_GLEXT_PROTOTYPES
+# remove '-D__NO_DISPLAY__' if want to have display
+CFLAGS= -O3 -g -DGL_GLEXT_PROTOTYPES -D__NO_DISPLAY__
 
 # The name of the final executable 
 EXECUTABLE= raycast
@@ -36,7 +37,7 @@ EXECUTABLE= raycast
 # to your program here 
 
 # Linux (default)
-LDFLAGS = -lGL -lglut -lGLEW -lXext -lX11 -lm
+LDFLAGS = -lGL -lglut -lGLEW -lXext -lX11 -lm 
 
 # If you have other library files in a different directory add them here 
 INCLUDEFLAG= -I. -I$(INCLUDEDIR) -I./include/ -I./myinclude/

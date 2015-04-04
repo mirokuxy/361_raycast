@@ -27,7 +27,7 @@
 
 #include "trace.h"
 #include "global.h"
-#include "sphere.h"
+#include "object.h"
 #include "image_util.h"
 #include "scene.h"
 
@@ -91,7 +91,8 @@ int chessboard_on = 0; // whether to set up chessboard
 const int NumPoints = 6;
 
 //----------------------------------------------------------------------------
-
+// define __NO_DISPLAY__ to turn off opengl 
+#ifndef __NO_DISPLAY__
 void init()
 {
 	// Vertices of a square
@@ -171,6 +172,7 @@ void init()
 
 	glClearColor( 1.0, 1.0, 1.0, 1.0 );
 }
+#endif
 
 /*********************************************************
  * This is the OpenGL display function. It is called by
@@ -186,12 +188,12 @@ void display( void )
 	glClear( GL_COLOR_BUFFER_BIT );
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glEnable(GL_CULL_FACE);
-
+	
+	#ifndef __NO_DISPLAY__
 	glDrawArrays( GL_TRIANGLES, 0, NumPoints );
+	#endif
 
 	glutPostRedisplay();
-
-	//printf("drawing\n");
 
 	glutSwapBuffers();
 }
@@ -204,11 +206,13 @@ void display( void )
  *
  * DO NOT CHANGE
  *********************************************************/
+
 void keyboard(unsigned char key, int x, int y)
 {
 	switch (key) {
 	case 'q':case 'Q':
-		free(scene);
+		//free(scene);
+		freeObjects();
 		exit(0);
 		break;
 	case 's':case 'S':
@@ -219,8 +223,6 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	}
 }
-
-
 
 //----------------------------------------------------------------------------
 
@@ -252,34 +254,11 @@ int main( int argc, char **argv )
 	if(chessboard_on)
 		set_up_chessboard();
 
-	/*
-	glm::vec3 dir = glm::vec3(2,1,0);
-	glm::vec3 norm = glm::vec3(1,0,0);
-	glm::vec3 reflect = glm::rotate(dir, glm::radians(180.0f),norm);
-	printf("dir (%f,%f,%f) ; reflect (%f,%f,%f) \n",dir.x,dir.y,dir.z, reflect.x,reflect.y,reflect.z);
+	//printObjects();
 
-	dir = glm::vec3(2,1,0);
-	norm = glm::vec3(0,1,0);
-	reflect = glm::rotate(dir, glm::radians(180.0f),norm);
-	printf("dir (%f,%f,%f) ; reflect (%f,%f,%f) \n",dir.x,dir.y,dir.z, reflect.x,reflect.y,reflect.z);
-
-	dir = glm::vec3(2,1,0);
-	norm = glm::vec3(0,0,1);
-	reflect = glm::rotate(dir, glm::radians(180.0f),norm);
-	printf("dir (%f,%f,%f) ; reflect (%f,%f,%f) \n",dir.x,dir.y,dir.z, reflect.x,reflect.y,reflect.z);
-
-	dir = glm::vec3(2,1,0);
-	norm = glm::vec3(1,-2,0);
-	reflect = glm::rotate(dir, glm::radians(180.0f),norm);
-	printf("dir (%f,%f,%f) ; reflect (%f,%f,%f) \n",dir.x,dir.y,dir.z, reflect.x,reflect.y,reflect.z);
-	*/
-
-	//
 	// ray trace the scene now
-	//
 	// we have used so many global variables and this function is
-	// happy to carry no parameters
-	//
+	// happy to carry no parameters	
 	printf("Rendering scene using my fantastic ray tracer ...\n");
 	ray_trace();
 	printf("After ray trace\n");
@@ -294,11 +273,14 @@ int main( int argc, char **argv )
 	glutCreateWindow( "Ray tracing" );
 	glewInit();
 
+	#ifndef __NO_DISPLAY__
 	init();
+	#endif
 	printf("After init\n");
 
 	glutDisplayFunc( display );
 	glutKeyboardFunc( keyboard );
 	glutMainLoop();
+
 	return 0;
 }
