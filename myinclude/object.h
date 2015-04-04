@@ -34,11 +34,16 @@ public:
     char type;
     Object* next;
 
-    Object():type('O'),next(NULL){}
+    bool refract;   // whehter the object can refract
+    float refractivity;     // the ability to refract light
+    float refractance;      // [0,1] determines how much refracted light contributes
+                            // to the color of a pixel
 
-    Object(int id, glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl):
+    Object():type('O'),next(NULL), refract(false),refractivity(2),refractance(0){}
+
+    Object(int id, glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl, bool refr = false, float refrty = 2, float refrce = 0):
         index(id),mat_ambient(amb),mat_diffuse(dif),mat_specular(spe),mat_shineness(shine),reflectance(refl),
-        next(NULL),type('O'){}
+        next(NULL),type('O'), refract(refr), refractivity(refrty), refractance(refrce){}
 
     virtual glm::vec3 GetAmbient(glm::vec3 point) = 0;
 
@@ -69,6 +74,13 @@ public:
     }
 
     virtual float Intersect(glm::vec3 eye, glm::vec3 ray, glm::vec3 *hit) = 0;
+    virtual float Intersect(glm::vec3 eye, glm::vec3 ray, glm::vec3 *hit, bool near) {
+        return Intersect(eye,ray,hit);
+    }
+
+    virtual bool Refract(glm::vec3 inRay, glm::vec3 inPoint, glm::vec3 *outRay, glm::vec3 *outPoint){ 
+        return false;
+    }
 };
 
 class Sphere: public Object{
@@ -78,8 +90,9 @@ public:
 
     Sphere():Object(),center(glm::vec3(0,0,0)),radius(1){ type = 'S'; }
 
-    Sphere(int id, glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl, glm::vec3 ctr,float rad):
-        Object(id,amb,dif,spe,shine,refl),center(ctr),radius(rad){
+    Sphere(int id, glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl,
+        glm::vec3 ctr,float rad, bool refr = false, float refrty = 2, float refrce = 0):
+        Object(id,amb,dif,spe,shine,refl,refr,refrty,refrce),center(ctr),radius(rad){
             type = 'S';
         }
 
@@ -100,7 +113,20 @@ public:
         cout << "radius : " << radius << "\n";
     }
 
-    float Intersect(glm::vec3 eye, glm::vec3 ray, glm::vec3 *hit);
+    float Intersect(glm::vec3 eye, glm::vec3 ray, glm::vec3 *hit, bool near);
+
+    float Intersect(glm::vec3 eye, glm::vec3 ray, glm::vec3 *hit){
+        return Intersect(eye,ray,hit,true);
+    }
+
+    // set *outRay, *outPoint and return true if success
+    // otherwise return false
+    // refract can fail out of precision error
+    bool Refract(glm::vec3 inRay, glm::vec3 inPoint, glm::vec3 *outRay, glm::vec3 *outPoint);  
+
+private:
+    // set *outRay and return true if not total reflection; return false other wise
+    bool GetRefractRay(glm::vec3 inRay, glm::vec3 inPoint, glm::vec3 *outRay);    
 
 };
 
@@ -164,6 +190,10 @@ public:
 
 void addSphere(int id, glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl, 
     glm::vec3 ctr, float rad);
+//bool refr = false, float refrty = 2, float refrce = 0
+void addSphere(int id, glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl, 
+    glm::vec3 ctr, float rad, bool refr, float refrty, float refrce);
+
 void addPlane(int id,glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl,
     glm::vec3 ctr, glm::vec3 norm, glm::vec3 Xax, int Xl, int Yl);
 

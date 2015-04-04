@@ -86,6 +86,7 @@ int step_max = 1;
 int shadow_on = 0; // a flag to indicate whether you want to have shadows
 int reflect_on = 0; // a flag to indicate whether to have reflection
 int chessboard_on = 0; // whether to set up chessboard
+int refract_on = 0;	// whether have refraction effect
 
 // OpenGL
 const int NumPoints = 6;
@@ -249,6 +250,7 @@ int main( int argc, char **argv )
 		if (strcmp(argv[i], "+s") == 0)	shadow_on = 1;
 		if (strcmp(argv[i], "+l") == 0) reflect_on = 1;
 		if (strcmp(argv[i], "+c") == 0) chessboard_on = 1;
+		if (strcmp(argv[i], "+r") == 0) refract_on = 1;
 	}
 
 	if(chessboard_on)

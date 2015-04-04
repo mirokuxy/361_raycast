@@ -28,7 +28,8 @@ CC= g++
 # you can add '-g' on the following line
 #CFLAGS= -O3 -g -Wall -pedantic -DGL_GLEXT_PROTOTYPES
 # remove '-D__NO_DISPLAY__' if want to have display
-CFLAGS= -O3 -g -DGL_GLEXT_PROTOTYPES -D__NO_DISPLAY__
+#CFLAGS= -O3 -g -DGL_GLEXT_PROTOTYPES -D__NO_DISPLAY__
+CFLAGS= -O3 -g -DGL_GLEXT_PROTOTYPES
 
 # The name of the final executable 
 EXECUTABLE= raycast

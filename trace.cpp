@@ -46,6 +46,7 @@ extern float decay_c;
 extern int shadow_on;
 extern int reflect_on;
 extern int step_max;
+extern int refract_on;
 
 /////////////////////////////////////////////////////////////////////
 inline float max(float a,float b){ return a>b?a:b; }
@@ -131,6 +132,15 @@ glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray,int ignore, int step)
 
             color += color_rf * S->reflectance ;
             //printf("  exit reflect\n");
+        }
+
+        if(refract_on && step < step_max && S->refract ){
+            glm::vec3 outRay, outPoint;
+            if(S->Refract(ray, hit, &outRay, &outPoint)){
+                glm::vec3 color_rfr = recursive_ray_trace(outPoint, outRay, S->index, step+1);
+                color += color_rfr * S->refractance;
+            }
+
         }
     }
 

@@ -27,7 +27,7 @@ const float precision = 0.000001;
  * If there is an intersection, the point of intersection will be
  * stored in the "hit" variable
  **********************************************************************/
-float Sphere::Intersect(glm::vec3 eye, glm::vec3 ray, glm::vec3 *hit) {
+float Sphere::Intersect(glm::vec3 eye, glm::vec3 ray, glm::vec3 *hit, bool near) {
     glm::vec3 fromCtr = eye - center ;
 
     float a = glm::dot(ray,ray);
@@ -57,13 +57,59 @@ float Sphere::Intersect(glm::vec3 eye, glm::vec3 ray, glm::vec3 *hit) {
             return len1 ;
         } 
         else{ // both right direction
-            *hit = eye + ray * len2;
-            return len2 ;
+        	if(near){
+	            *hit = eye + ray * len2;
+	            return len2 ;
+        	}
+        	else{
+        		*hit = eye + ray * len1;
+        		return len1;
+        	}
+
         }
     }  
 }
 
+// set *outRay, *outPoint and return true if success
+// otherwise return false
+// refract can fail out of precision error
+bool Sphere::Refract(glm::vec3 inRay, glm::vec3 inPoint, glm::vec3 *outRay, glm::vec3 *outPoint){ 
+	glm::vec3 midRay, retRay;
+	glm::vec3 retPoint;
 
+	if(! GetRefractRay(inRay,inPoint, &midRay) ) return false;
+
+	float dist = Intersect(inPoint, midRay, &retPoint, false);
+	if(dist < precision) return false;
+	if(! GetRefractRay(midRay,retPoint,&retRay) ) return false;
+
+	*outRay = retRay;
+	*outPoint = retPoint;
+	return true;
+}
+
+// set *outRay and return true if not total reflection; return false other wise
+bool Sphere::GetRefractRay(glm::vec3 inRay, glm::vec3 inPoint, glm::vec3 *outRay){
+	glm::vec3 normal = GetNormal(inPoint);
+	inRay = glm::normalize(-inRay);
+
+	float ratio;
+
+	if(glm::dot(normal, inRay) > 0 ){	// inward ray
+		ratio = 1 / refractivity ;
+	} 
+	else{	// outward ray
+		normal = -normal;
+		ratio = refractivity;
+	}
+
+	float root = 1 - pow(ratio,2) * ( 1 - pow( glm::dot(normal,inRay), 2) );
+
+	if( root < precision ) return false;
+
+	*outRay = normal * ( ratio * glm::dot(normal,inRay) - sqrt(root) ) - ratio * inRay;
+	return true;
+}    
 
 // return -1.0 when no intersection, and do nothing to *hit 
 // else return distance from eye to hit point (positive only), and set *hit
@@ -158,11 +204,19 @@ void addObject(Object* obj){
 }
 
 // This function adds a sphere into the scene list
-void addSphere(int id, glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl, glm::vec3 ctr, float rad){
-    Sphere* sph = new Sphere;
-    (*sph) = Sphere(id,amb,dif,spe,shine,refl,ctr,rad);
-    addObject(sph);
-}
+void addSphere(int id, glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl, 
+	glm::vec3 ctr, float rad){
+	    Sphere* sph = new Sphere;
+	    (*sph) = Sphere(id,amb,dif,spe,shine,refl,ctr,rad);
+	    addObject(sph);
+	}
+//bool refr = false, float refrty = 2, float refrce = 0
+void addSphere(int id, glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl, 
+	glm::vec3 ctr, float rad, bool refr, float refrty, float refrce){
+	    Sphere* sph = new Sphere;
+	    (*sph) = Sphere(id,amb,dif,spe,shine,refl,ctr,rad,refr,refrty, refrce);
+	    addObject(sph);
+	}
 
 // This function adds a plane into the scene list
 void addPlane(int id,glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shine, float refl,
