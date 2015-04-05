@@ -2,6 +2,9 @@
 #include <GL/glut.h>
 #include <math.h>
 
+#include <stdlib.h>
+#include <time.h>
+
 // GLM lib for matrix calculation
 #include "include/glm/glm.hpp"
 #include "include/glm/gtc/matrix_transform.hpp"
@@ -47,10 +50,15 @@ extern int shadow_on;
 extern int reflect_on;
 extern int step_max;
 extern int refract_on;
+extern int difref_on;
 
 /////////////////////////////////////////////////////////////////////
 inline float max(float a,float b){ return a>b?a:b; }
 
+inline float random(float a, float b){
+
+    return ( (float) rand() / RAND_MAX * (b-a) + a );
+}
 
 /*********************************************************************
  * Phong illumination 
@@ -76,8 +84,7 @@ glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Object 
     // diffuse
     surf_norm = glm::normalize(surf_norm);
     //printf("  before GetDiffuse\n");
-    glm::vec3 mat_diffuse;
-    mat_diffuse = obj->GetDiffuse(point);
+    glm::vec3 mat_diffuse = obj->GetDiffuse(point);
     //printf("  after GetDiffuse\n");
     glm::vec3 diffuse = decay * (light1_diffuse * mat_diffuse ) * max(glm::dot(surf_norm, lightDir),0) ;
     //printf("  after calc diffuse\n");
@@ -140,8 +147,26 @@ glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray,int ignore, int step)
                 glm::vec3 color_rfr = recursive_ray_trace(outPoint, outRay, S->index, step+1);
                 color += color_rfr * S->refractance;
             }
-
         }
+
+        
+        if(difref_on && step < 2){
+            for(int i=0;i<DIFFUSE_RAYS;i++){
+                glm::vec3 difrefDir = surf_norm;
+                glm::vec3 axis = glm::cross(viewDir, surf_norm);
+                float angle1 = random(-89.0f,89.0f);
+                difrefDir = glm::rotate(difrefDir, glm::radians(angle1), axis);
+                float angle2 = random(-180.0f,180.0f);
+                difrefDir = glm::rotate(difrefDir, glm::radians(angle2), surf_norm);
+                difrefDir = glm::normalize(difrefDir);
+
+                glm::vec3 color_difref = recursive_ray_trace(hit, difrefDir, S->index, step+1);
+
+                color += color_difref * float(0.1);
+            }
+        }
+
+
     }
 
     return color;
@@ -166,6 +191,7 @@ void ray_trace() {
     cur_pixel_pos.y = y_start + 0.5 * y_grid_size;
     cur_pixel_pos.z = image_plane;
 
+    srand(time(NULL));
     for (i=0; i<win_height; i++) {
         for (j=0; j<win_width; j++) {
             //ray = get_vec(eye_pos, cur_pixel_pos);
