@@ -18,7 +18,8 @@ LIBDIR=/usr/lib
 
 # If you have more source files add them here 
 # SOURCE= scene.cpp image_util.cpp sphere.cpp vector.cpp trace.cpp raycast.cpp include/InitShader.cpp
-SOURCE= scene.cpp image_util.cpp object.cpp trace.cpp raycast.cpp include/InitShader.cpp
+#SOURCE= scene.cpp image_util.cpp object.cpp trace.cpp raycast.cpp include/InitShader.cpp
+SOURCE= scene.cpp image_util.cpp object.cpp trace.cpp raycast.cpp
 
 # The compiler we are using 
 CC= g++
@@ -28,8 +29,8 @@ CC= g++
 # you can add '-g' on the following line
 #CFLAGS= -O3 -g -Wall -pedantic -DGL_GLEXT_PROTOTYPES
 # remove '-D__NO_DISPLAY__' if want to have display
-#CFLAGS= -O3 -g -DGL_GLEXT_PROTOTYPES -D__NO_DISPLAY__
-CFLAGS= -O3 -g -DGL_GLEXT_PROTOTYPES
+CFLAGS= -O3 -g -DGL_GLEXT_PROTOTYPES -D__NO_DISPLAY__
+#CFLAGS= -O3 -g -DGL_GLEXT_PROTOTYPES
 
 # The name of the final executable 
 EXECUTABLE= raycast
@@ -41,7 +42,7 @@ EXECUTABLE= raycast
 LDFLAGS = -lGL -lglut -lGLEW -lXext -lX11 -lm 
 
 # If you have other library files in a different directory add them here 
-INCLUDEFLAG= -I. -I$(INCLUDEDIR) -I./include/ -I./myinclude/
+INCLUDEFLAG= -I. -I$(INCLUDEDIR) -I./include/
 LIBFLAG= -L$(LIBDIR)
 
 # Don't touch this one if you don't know what you're doing 

@@ -1,13 +1,14 @@
 //
 // this provide functions to set up the scene
 //
-#include "object.h"
-#include <stdio.h>
 
 // GLM lib for matrix calculation
 #include "include/glm/glm.hpp"
 #include "include/glm/gtc/matrix_transform.hpp"
 #include "include/glm/gtc/type_ptr.hpp"
+
+#include "object.h"
+#include <cstdio>
 
 // light 1 position and color
 extern glm::vec3 light1;

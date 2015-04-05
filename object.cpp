@@ -1,12 +1,13 @@
-#include "object.h"
-#include <stdlib.h>
-#include <math.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cmath>
+#include <cstdio>
 
 // GLM lib for matrix calculation
 #include "include/glm/glm.hpp"
 #include "include/glm/gtc/matrix_transform.hpp"
 #include "include/glm/gtc/type_ptr.hpp"
+
+#include "object.h"
 
 extern Object* scene;
 
@@ -16,7 +17,7 @@ ostream& operator << (ostream& os, glm::vec3& vec){
     return os;
 }
 
-const float precision = 0.000001;
+const float precision = 0.00001;
 
 /**********************************************************************
  * This function intersects a ray with a given sphere 'sph'.

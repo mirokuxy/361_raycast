@@ -13,7 +13,18 @@
  *  M. vandePanne - and then modified by R. Zhang & H. Li
 ***********************************************************/
 
-#include "include/Angel.h"
+//#include "include/Angel.h"
+
+#ifdef __APPLE__  // include Mac OS X verions of headers
+#  include <OpenGL/OpenGL.h>
+#  include <GLUT/glut.h>
+#else // non-Mac OS X operating systems
+#  include <GL/glew.h>
+//#  include <GL/glut.h>
+#  include <GL/freeglut.h>
+#  include <GL/freeglut_ext.h>
+#endif  // __APPLE__
+
 
 // GLM lib for matrix calculation
 #include "include/glm/glm.hpp"
@@ -21,10 +32,11 @@
 #include "include/glm/gtc/type_ptr.hpp"
 #include "include/glm/gtx/rotate_vector.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
+#include "shader.h"
 #include "trace.h"
 #include "global.h"
 #include "object.h"
@@ -88,6 +100,7 @@ int reflect_on = 0; // a flag to indicate whether to have reflection
 int chessboard_on = 0; // whether to set up chessboard
 int refract_on = 0;	// whether have refraction effect
 int difref_on = 0; // whether to have diffuse reflection
+int antiAlias_on = 0; 	// whether to have anti alias
 
 // OpenGL
 const int NumPoints = 6;
@@ -154,23 +167,23 @@ void init()
 	glBufferSubData( GL_ARRAY_BUFFER, offset, sizeof(tex_coords), tex_coords );
 
 	// Load shaders and use the resulting shader program
-	GLuint program = InitShader( "vshader.glsl", "fshader.glsl" );
-	glUseProgram( program );
+	Shader myShader( "vshader.glsl", "fshader.glsl" );
+	myShader.Use();
 
 	// set up vertex arrays
 	offset = 0;
-	GLuint vPosition = glGetAttribLocation( program, "vPosition" );
+	GLuint vPosition = glGetAttribLocation( myShader.Program, "vPosition" );
 	glEnableVertexAttribArray( vPosition );
 	glVertexAttribPointer( vPosition, 4, GL_FLOAT, GL_FALSE, 0,
-		BUFFER_OFFSET(offset) );
+		(GLvoid*) (offset) );
 
 	offset += sizeof(points);
-	GLuint vTexCoord = glGetAttribLocation( program, "vTexCoord" ); 
+	GLuint vTexCoord = glGetAttribLocation( myShader.Program, "vTexCoord" ); 
 	glEnableVertexAttribArray( vTexCoord );
 	glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0,
-		BUFFER_OFFSET(offset) );
+		(GLvoid*) (offset) );
 
-	glUniform1i( glGetUniformLocation(program, "texture"), 0 );
+	glUniform1i( glGetUniformLocation( myShader.Program, "texture"), 0 );
 
 	glClearColor( 1.0, 1.0, 1.0, 1.0 );
 }
@@ -253,6 +266,7 @@ int main( int argc, char **argv )
 		if (strcmp(argv[i], "+c") == 0) chessboard_on = 1;
 		if (strcmp(argv[i], "+r") == 0) refract_on = 1;
 		if (strcmp(argv[i], "+f") == 0) difref_on = 1;
+		if (strcmp(argv[i], "+p") == 0) antiAlias_on = 1;
 	}
 
 	if(chessboard_on)

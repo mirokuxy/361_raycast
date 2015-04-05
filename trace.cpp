@@ -1,8 +1,8 @@
-#include <stdio.h>
+#include <cstdio>
 #include <GL/glut.h>
-#include <math.h>
+#include <cmath>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <time.h>
 
 // GLM lib for matrix calculation
@@ -51,6 +51,7 @@ extern int reflect_on;
 extern int step_max;
 extern int refract_on;
 extern int difref_on;
+extern int antiAlias_on;
 
 /////////////////////////////////////////////////////////////////////
 inline float max(float a,float b){ return a>b?a:b; }
@@ -59,6 +60,8 @@ inline float random(float a, float b){
 
     return ( (float) rand() / RAND_MAX * (b-a) + a );
 }
+
+const float precision = 0.00001;
 
 /*********************************************************************
  * Phong illumination 
@@ -78,8 +81,12 @@ glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Object 
     glm::vec3 lightDir = glm::normalize(light1 - point);
     glm::vec3 hit;
     bool shadow = false;
-    if( shadow_on && intersectScene(point, lightDir, &hit, obj->index) != NULL ) 
-        shadow = true;
+    if( shadow_on ) {
+        if ( intersectScene(point, lightDir, &hit, obj->index) != NULL ) 
+            shadow = true;
+        else if( obj->Intersect(point,lightDir,&hit, false) > precision )
+            shadow = true;
+    }
 
     // diffuse
     surf_norm = glm::normalize(surf_norm);
@@ -100,7 +107,7 @@ glm::vec3 phong(glm::vec3 point, glm::vec3 viewDir, glm::vec3 surf_norm, Object 
     //if(shadow) specular = glm::vec3(0);
 
     // calc color
-    glm::vec3 color = global_ambient + ambient;
+    glm::vec3 color = global_ambient * mat_ambient +  ambient;
     if(!shadow) 
         color += diffuse + specular;
         //color = specular;
@@ -184,39 +191,61 @@ void ray_trace() {
     float y_start = -0.5 * image_height;
     glm::vec3 ret_color;
     glm::vec3 cur_pixel_pos;
-    glm::vec3 ray;
 
     // ray is cast through center of pixel
     cur_pixel_pos.x = x_start + 0.5 * x_grid_size;
     cur_pixel_pos.y = y_start + 0.5 * y_grid_size;
     cur_pixel_pos.z = image_plane;
 
+    float antiAlias[5][2] = {
+        {-0.25, +0.25},
+        {+0.25, +0.25},
+        {0,0},
+        {-0.25, -0.25},
+        {+0.25, -0.25}
+    };
+
     srand(time(NULL));
     for (i=0; i<win_height; i++) {
         for (j=0; j<win_width; j++) {
-            //ray = get_vec(eye_pos, cur_pixel_pos);
-            ray = cur_pixel_pos - eye_pos;
+            ret_color = glm::vec3(0,0,0);
 
-            //normalize(&ray);
-            ray = glm::normalize(ray);
+            if(antiAlias_on){
+                for(int k=0;k<5;k++){
+                    glm::vec3 pixel_pos = cur_pixel_pos + glm::vec3(antiAlias[k][0] * x_grid_size,antiAlias[k][1] * y_grid_size,0);
+                    glm::vec3 ray = glm::normalize(pixel_pos - eye_pos);
+                    ret_color += recursive_ray_trace(eye_pos,ray,0,0);
+                }
 
-            //
-            // You need to change this!!!
-            //
-            ret_color = recursive_ray_trace(eye_pos,ray,0,0);
-            //else ret_color = background_clr; // just background for now
+                ret_color /= 5;
+            }
+            else{
+                
+                //ray = get_vec(eye_pos, cur_pixel_pos);
+                glm::vec3 ray = cur_pixel_pos - eye_pos;
+
+                //normalize(&ray);
+                ray = glm::normalize(ray);
+
+                //
+                // You need to change this!!!
+                //
+                ret_color = recursive_ray_trace(eye_pos,ray,0,0);
+                //else ret_color = background_clr; // just background for now
 
 
 
-            // Parallel rays can be cast instead using below
-            //
-            // ray.x = ray.y = 0;
-            // ray.z = -1.0;
-            // ret_color = recursive_ray_trace(cur_pixel_pos, ray, 1);
+                // Parallel rays can be cast instead using below
+                //
+                // ray.x = ray.y = 0;
+                // ray.z = -1.0;
+                // ret_color = recursive_ray_trace(cur_pixel_pos, ray, 1);
 
-            // Checkboard for testing
-            glm::vec3 clr = glm::vec3(float(i/32), 0, float(j/32));
-            //ret_color = clr;
+                // Checkboard for testing
+                // glm::vec3 clr = glm::vec3(float(i/32), 0, float(j/32));
+                //ret_color = clr;
+                
+            }
 
             frame[i][j] = ret_color;
 
