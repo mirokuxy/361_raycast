@@ -159,11 +159,11 @@ glm::vec3 recursive_ray_trace(glm::vec3 eye, glm::vec3 ray,int ignore, int step)
         
         if(difref_on && step < 2){
             for(int i=0;i<DIFFUSE_RAYS;i++){
-                glm::vec3 difrefDir = surf_norm;
+                glm::vec3 difrefDir = glm::normalize(glm::rotate(viewDir, glm::radians(180.0f), surf_norm));
                 glm::vec3 axis = glm::cross(viewDir, surf_norm);
-                float angle1 = random(-89.0f,89.0f);
+                float angle1 = random(-5.0f,0.0f);
                 difrefDir = glm::rotate(difrefDir, glm::radians(angle1), axis);
-                float angle2 = random(-180.0f,180.0f);
+                float angle2 = random(-5.0f,5.0f);
                 difrefDir = glm::rotate(difrefDir, glm::radians(angle2), surf_norm);
                 difrefDir = glm::normalize(difrefDir);
 
